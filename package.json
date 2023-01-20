@@ -1,0 +1,17 @@
+{
+  "name": "chalagen",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node ./index.js",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "moment": "^2.29.4",
+    "prompt": "^1.3.0"
+  },
+  "devDependencies": {
+    "prettier": "^2.8.3"
+  }
+}
