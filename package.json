@@ -5,13 +5,17 @@
   "license": "MIT",
   "scripts": {
     "start": "node ./index.js",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "tsc:init": "tsc --init"
   },
   "dependencies": {
     "moment": "^2.29.4",
     "prompt": "^1.3.0"
   },
   "devDependencies": {
-    "prettier": "^2.8.3"
+    "@types/node": "^18.11.18",
+    "@types/prompt": "^1.1.4",
+    "prettier": "^2.8.3",
+    "typescript": "^4.9.4"
   }
 }

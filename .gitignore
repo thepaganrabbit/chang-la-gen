@@ -1,6 +1,6 @@
 /node_modules
 /coverage
-
+*.changlogen.json
 logs.json
 logs.md
 *.log
