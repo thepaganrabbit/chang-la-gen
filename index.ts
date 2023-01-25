@@ -1,6 +1,7 @@
 import fs from 'fs';
 import moment from 'moment';
 import prompt from 'prompt';
+import path from 'path';
 
 import * as settings from './config.changlogen.json';
 
@@ -166,5 +167,5 @@ class LogGen implements LogGenInterface {
 }
 
 
-export default new LogGen();
+export default LogGen;
 

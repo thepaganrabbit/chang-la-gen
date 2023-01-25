@@ -1,13 +1,16 @@
 {
   "name": "chalagen",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "./lib/index.js",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thepaganrabbit/chang-la-gen.git"
+  },
   "scripts": {
     "start": "node ./index.js",
     "format": "prettier --write .",
-    "build": "tsc -p .",
-    "tsc:init": "tsc --init"
+    "build": "tsc -p ."
   },
   "dependencies": {
     "moment": "^2.29.4",
