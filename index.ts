@@ -165,44 +165,6 @@ class LogGen implements LogGenInterface {
     }
 }
 
+
 export default new LogGen();
 
-
-// const main = async () => {
-
-//     if (!await checkIfJsonFilesExists()) {
-//         await createJSONFile();
-//     }
-//     let currentLogs = await fs.readFileSync('logs.json');
-//     currentLogs = JSON.parse(currentLogs);
-//     const data = await prompt.get(['project', 'handle', 'ticket']);
-//     console.log(data);
-//     const { numberOfChanges } = await prompt.get(['numberOfChanges']);
-//     const amount = parseInt(numberOfChanges, 10);
-//     const changes = [];
-//     let i = 1;
-//     for (i; i <= amount; i++) {
-//         const notes = await prompt.get(['type', 'message']);
-//         changes.push(notes);
-//     }
-
-//     const log = {
-//         date_logged: moment().format("MMMM Do YYYY | (h:mm:ss a)"),
-//         ...data,
-//         changes: changes.map(change => {
-//             return `- ${change.type} - ${change.message}\n\t`
-//         }),
-//     };
-//     currentLogs.push(log);
-//     await fs.writeFileSync('logs.json', JSON.stringify(currentLogs));
-//     console.log(log);
-//     console.log('updating md');
-
-//     if (!await checkIfMdFilesExists()) {
-//         await createMDFile();
-//     }
-//     const writeString = `# Change Logs\n\n${currentLogs.map((log) => { return `\n**Log Date:${log.date_logged} - ${log.project} - submitted by: ${log.handle} - Jira/Link: ${log.ticket}**\n\t${log.changes.join()}` }).join()}`.replace(',', '');
-//     await fs.writeFileSync('logs.md', writeString.toString().replaceAll(',', ''));
-// }
-
-// main();
