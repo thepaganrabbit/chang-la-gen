@@ -1,17 +1,30 @@
 {
   "name": "chalagen",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "index.js",
+  "types": "lib/index.d.ts",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thepaganrabbit/chang-la-gen.git"
+  },
   "scripts": {
     "start": "node ./index.js",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "clean": "rimraf lib",
+    "transpile": "tsc -p .",
+    "build": "npm run clean && npm run transpile"
   },
   "dependencies": {
+    "fs": "^0.0.1-security",
     "moment": "^2.29.4",
     "prompt": "^1.3.0"
   },
   "devDependencies": {
-    "prettier": "^2.8.3"
+    "@types/node": "^18.11.18",
+    "@types/prompt": "^1.1.4",
+    "prettier": "^2.8.3",
+    "rimraf": "^4.1.2",
+    "typescript": "^4.9.4"
   }
 }

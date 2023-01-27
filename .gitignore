@@ -1,6 +1,10 @@
 /node_modules
 /coverage
-
+/build
+/lib
+/testfiles
+*.changlogen.json
 logs.json
 logs.md
 *.log
+*.npmignore
