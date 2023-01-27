@@ -1,3 +1,3 @@
-const LogGen = require('./lib/index');
+const LogGen = require('./lib');
 
-module.exports = LogGen;
+module.exports = LogGen.default

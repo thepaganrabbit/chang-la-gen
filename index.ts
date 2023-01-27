@@ -3,7 +3,6 @@ import moment from 'moment';
 import prompt from 'prompt';
 import path from 'path';
 
-import * as settings from './config.changlogen.json';
 
 export interface ChangesLog {
     type: string;
@@ -19,6 +18,7 @@ export interface GeneratedLog {
 }
 
 export interface LogGenInterface {
+    getSettings: () => Promise<void>;
     createJSONFile: () => Promise<void | Error>;
     createMDFile: () => Promise<void | Error>;
     checkIfJsonFilesExists: () => Promise<boolean | Error>;
@@ -30,43 +30,69 @@ export interface LogGenInterface {
     getChanges: () => Promise<ChangesLog[] | ChangesLog | Error>;
 }
 
-class LogGen implements LogGenInterface {
+export interface ChanlagenSettings {
+    handle: string;
+    emitMd: boolean;
+    projectName: string;
+    ticketStyle: 'string' | 'number';
+    jsonPath: string;
+}
+
+export default class LogGen implements LogGenInterface {
     handle: string = '';
     emitMd: boolean = true;
     projectName: string = '';
     ticketStyle: 'string' | 'number' = 'string';
     currentLogs: GeneratedLog[] = [];
-    constructor() {
-        this.handle = (settings as any).handle;
-        this.emitMd = (settings as any).emitMd;
-        this.projectName = (settings as any).projectName;
-        this.ticketStyle = (settings as any).ticketStyle;
+    jsonPath: string = '';
+    constructor() { }
+    async getSettings() {
+        try {
+            if (!await fs.existsSync(path.join(__dirname, './config.changlogen.json'))) {
+                throw new Error('Unabel to locate the config.changlogen.json');
+            }
+            const settingStr = await fs.readFileSync(path.join(__dirname, '../config.changlogen.json'));
+            const settings: ChanlagenSettings = JSON.parse(settingStr.toString());
+            console.log("here are your settings, if they do not look right cancel and fix in your config.");
+            console.log(settings);
+            console.log("If the settings are correct type Y/N");
+            const {answer}: {answer: string} = await prompt.get(['answer']);
+            if (answer.toLowerCase() === 'n') {
+                process.exit();
+            }
+            this.handle = settings.handle;
+            this.emitMd = settings.emitMd;
+            this.projectName = settings.projectName;
+            this.ticketStyle = settings.ticketStyle;
+            this.jsonPath = settings.jsonPath;
+        } catch (error) {
+            throw error;
+        }
     }
-
     async createJSONFile() {
         try {
-            await fs.writeFileSync('logs.json', JSON.stringify([]));
+            await fs.writeFileSync(path.join(__dirname, `../${this.jsonPath}logs.json`), JSON.stringify([]));
         } catch (error) {
             throw error;
         }
     }
     async createMDFile() {
         try {
-            await fs.writeFileSync('logs.md', JSON.stringify(''));
+            await fs.writeFileSync(path.join(__dirname, '../logs.md'), JSON.stringify(''));
         } catch (error) {
             throw error;
         }
     }
     async checkIfJsonFilesExists() {
         try {
-            return await fs.existsSync('logs.json');
+            return await fs.existsSync(path.join(__dirname, `../${this.jsonPath}logs.json`));
         } catch (error) {
             throw error;
         }
     }
     async checkIfMdFileExists() {
         try {
-            return await fs.existsSync('logs.md');
+            return await fs.existsSync(path.join(__dirname, '../logs.md'));
         } catch (error) {
             throw error;
         }
@@ -86,7 +112,7 @@ class LogGen implements LogGenInterface {
     }
     async getCurrentLogs() {
         try {
-            let currentLogs = await fs.readFileSync('logs.json');
+            let currentLogs = await fs.readFileSync(path.join(__dirname, `../${this.jsonPath}logs.json`));
             let logs: GeneratedLog[] = JSON.parse(currentLogs as any);
             return logs;
         } catch (error) {
@@ -133,7 +159,7 @@ class LogGen implements LogGenInterface {
     }
     async writeToJSON() {
         try {
-            await fs.writeFileSync('logs.json', JSON.stringify(this.currentLogs));
+            await fs.writeFileSync(path.join(__dirname, `./${this.jsonPath}logs.json`), JSON.stringify(this.currentLogs));
         } catch (error) {
             throw error;
         }
@@ -141,31 +167,32 @@ class LogGen implements LogGenInterface {
     async writeToMD() {
         try {
             const writeString = `# Change Logs\n\n${this.currentLogs.map((log) => { return `\n**Log Date:${log.date_logged} - ${log.project} - submitted by: ${log.handle} - Jira/Link: ${log.ticket}**\n\t${(log as any).isArray() ? (log.changes as ChangesLog[]).join() : log}` }).join()}`.replace(',', '');
-            await fs.writeFileSync('logs.md', (writeString.toString() as any).replaceAll(',', ''));
+            await fs.writeFileSync(path.join(__dirname, '../logs.md'), (writeString.toString() as any).replaceAll(',', ''));
         } catch (error) {
             throw error;
         }
     }
     async start() {
         try {
-            const ticketNumber = await this.getTicketNumber();
-            const changeOrChanges = await this.getChanges();
-            const log: GeneratedLog = {
-                date_logged: moment().format("MMMM Do YYYY | (h:mm:ss a)"),
-                project: this.projectName,
-                handle: this.handle,
-                ticket: ticketNumber,
-                changes: changeOrChanges
-            }
-            this.currentLogs.push(log);
-            await this.writeToJSON();
-            if (this.emitMd) await this.writeToMD();
+            await this.getSettings();
+        
+            // await this.init();
+            // const ticketNumber = await this.getTicketNumber();
+            // const changeOrChanges = await this.getChanges();
+            // const log: GeneratedLog = {
+            //     date_logged: moment().format("MMMM Do YYYY | (h:mm:ss a)"),
+            //     project: this.projectName,
+            //     handle: this.handle,
+            //     ticket: ticketNumber,
+            //     changes: changeOrChanges
+            // }
+            // this.currentLogs.push(log);
+            // await this.writeToJSON();
+            // if (this.emitMd) await this.writeToMD();
         } catch (error) {
             throw error;
         }
     }
 }
 
-
-export default LogGen;
 

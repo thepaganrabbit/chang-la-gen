@@ -2,6 +2,7 @@
 /coverage
 /build
 /lib
+/testfiles
 *.changlogen.json
 logs.json
 logs.md
