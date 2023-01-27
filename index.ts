@@ -1,7 +1,6 @@
 import fs from 'fs';
 import moment from 'moment';
 import prompt from 'prompt';
-import path from 'path';
 
 
 export interface ChangesLog {
@@ -36,6 +35,7 @@ export interface ChanlagenSettings {
     projectName: string;
     ticketStyle: 'string' | 'number';
     jsonPath: string;
+    checkSettings: boolean;
 }
 
 export default class LogGen implements LogGenInterface {
@@ -45,54 +45,63 @@ export default class LogGen implements LogGenInterface {
     ticketStyle: 'string' | 'number' = 'string';
     currentLogs: GeneratedLog[] = [];
     jsonPath: string = '';
+    checkSettings: boolean = false;
     constructor() { }
     async getSettings() {
         try {
-            if (!await fs.existsSync(path.join(__dirname, './config.changlogen.json'))) {
-                throw new Error('Unabel to locate the config.changlogen.json');
+            const configPath = process.cwd() + '/config.changlogen.json';
+            if (!await fs.existsSync(configPath)) {
+                throw new Error('Unable to locate the config.changlogen.json');
             }
-            const settingStr = await fs.readFileSync(path.join(__dirname, '../config.changlogen.json'));
+            const settingStr = await fs.readFileSync(configPath);
             const settings: ChanlagenSettings = JSON.parse(settingStr.toString());
-            console.log("here are your settings, if they do not look right cancel and fix in your config.");
-            console.log(settings);
-            console.log("If the settings are correct type Y/N");
-            const {answer}: {answer: string} = await prompt.get(['answer']);
-            if (answer.toLowerCase() === 'n') {
-                process.exit();
-            }
             this.handle = settings.handle;
             this.emitMd = settings.emitMd;
             this.projectName = settings.projectName;
             this.ticketStyle = settings.ticketStyle;
             this.jsonPath = settings.jsonPath;
+            this.checkSettings = settings.checkSettings;
+            if (this.checkSettings) {
+                console.log("here are your settings, if they do not look right cancel and fix in your config.");
+                console.log(settings);
+                console.log("If the settings are correct type Y/N");
+                const { answer }: { answer: string } = await prompt.get(['answer']);
+                if (answer.toLowerCase() === 'n') {
+                    process.exit();
+                }
+            }
         } catch (error) {
             throw error;
         }
     }
     async createJSONFile() {
         try {
-            await fs.writeFileSync(path.join(__dirname, `../${this.jsonPath}logs.json`), JSON.stringify([]));
+            const jsonLogPath = process.cwd() + `/${this.jsonPath}logs.json`;
+            await fs.writeFileSync(jsonLogPath, JSON.stringify([]));
         } catch (error) {
             throw error;
         }
     }
     async createMDFile() {
         try {
-            await fs.writeFileSync(path.join(__dirname, '../logs.md'), JSON.stringify(''));
+            const mdLogPath = process.cwd() + `/logs.md`;
+            await fs.writeFileSync(mdLogPath, JSON.stringify(''));
         } catch (error) {
             throw error;
         }
     }
     async checkIfJsonFilesExists() {
         try {
-            return await fs.existsSync(path.join(__dirname, `../${this.jsonPath}logs.json`));
+            const jsonLogPath = process.cwd() + `/${this.jsonPath}logs.json`;
+            return await fs.existsSync(jsonLogPath);
         } catch (error) {
             throw error;
         }
     }
     async checkIfMdFileExists() {
         try {
-            return await fs.existsSync(path.join(__dirname, '../logs.md'));
+            const mdLogPath = process.cwd() + `/logs.md`;
+            return await fs.existsSync(mdLogPath);
         } catch (error) {
             throw error;
         }
@@ -112,7 +121,8 @@ export default class LogGen implements LogGenInterface {
     }
     async getCurrentLogs() {
         try {
-            let currentLogs = await fs.readFileSync(path.join(__dirname, `../${this.jsonPath}logs.json`));
+            const jsonLogPath = process.cwd() + `/${this.jsonPath}logs.json`;
+            let currentLogs = await fs.readFileSync(jsonLogPath).toString();
             let logs: GeneratedLog[] = JSON.parse(currentLogs as any);
             return logs;
         } catch (error) {
@@ -159,15 +169,17 @@ export default class LogGen implements LogGenInterface {
     }
     async writeToJSON() {
         try {
-            await fs.writeFileSync(path.join(__dirname, `./${this.jsonPath}logs.json`), JSON.stringify(this.currentLogs));
+            const jsonLogPath = process.cwd() + `/${this.jsonPath}logs.json`;
+            await fs.writeFileSync(jsonLogPath, JSON.stringify(this.currentLogs));
         } catch (error) {
             throw error;
         }
     }
     async writeToMD() {
         try {
-            const writeString = `# Change Logs\n\n${this.currentLogs.map((log) => { return `\n**Log Date:${log.date_logged} - ${log.project} - submitted by: ${log.handle} - Jira/Link: ${log.ticket}**\n\t${(log as any).isArray() ? (log.changes as ChangesLog[]).join() : log}` }).join()}`.replace(',', '');
-            await fs.writeFileSync(path.join(__dirname, '../logs.md'), (writeString.toString() as any).replaceAll(',', ''));
+            const mdLogPath = process.cwd() + `/logs.md`;
+            const writeString = `# Change Logs\n\n${this.currentLogs.map((log) => { return `\n**Log Date:${log.date_logged} - ${log.project} - submitted by: ${log.handle} - Jira/Link: ${log.ticket}**\n\t${log.changes instanceof Array ? (log.changes as ChangesLog[]).map(lg => `${lg.type} - ${lg.message}`).join() : `${log.changes.type} - ${log.changes.message}`}` }).join()}`.replace(',', '');
+            await fs.writeFileSync(mdLogPath, (writeString.toString() as any).replaceAll(',', ''));
         } catch (error) {
             throw error;
         }
@@ -175,20 +187,19 @@ export default class LogGen implements LogGenInterface {
     async start() {
         try {
             await this.getSettings();
-        
-            // await this.init();
-            // const ticketNumber = await this.getTicketNumber();
-            // const changeOrChanges = await this.getChanges();
-            // const log: GeneratedLog = {
-            //     date_logged: moment().format("MMMM Do YYYY | (h:mm:ss a)"),
-            //     project: this.projectName,
-            //     handle: this.handle,
-            //     ticket: ticketNumber,
-            //     changes: changeOrChanges
-            // }
-            // this.currentLogs.push(log);
-            // await this.writeToJSON();
-            // if (this.emitMd) await this.writeToMD();
+            await this.init();
+            const ticketNumber = await this.getTicketNumber();
+            const changeOrChanges = await this.getChanges();
+            const log: GeneratedLog = {
+                date_logged: moment().format("MMMM Do YYYY | (h:mm:ss a)"),
+                project: this.projectName,
+                handle: this.handle,
+                ticket: ticketNumber,
+                changes: changeOrChanges
+            }
+            this.currentLogs.push(log);
+            await this.writeToJSON();
+            if (this.emitMd) await this.writeToMD();
         } catch (error) {
             throw error;
         }
