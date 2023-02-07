@@ -9,8 +9,8 @@ Create a file in your root directory and title it: config.changlogen.json
 
 ```JSON
 {
-    "handle": "@gustavog",
-    "projectName": "EIL",
+    "handle": "@gihubuser/user",
+    "projectName": "HUB",
     "emitMd": true,
     "ticketStyle": "string",
     "jsonPath": "public/"
